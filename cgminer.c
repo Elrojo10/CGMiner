@@ -2074,7 +2074,7 @@ static struct opt_table opt_config_table[] = {
 		     opt_set_charp, NULL, &opt_icarus_timing,
 		     opt_hidden),
 #endif
-#if defined(HAVE_MODMINER)
+#if defined(USE_MODMINER)
 	OPT_WITH_ARG("--kernel-path|-K",
 		     opt_set_charp, opt_show_charp, &opt_kernel_path,
 	             "Specify a path to where bitstream files are"),
