@@ -50,13 +50,20 @@ Drivers live in `driver-*.c` files (e.g. `driver-avalon8.c`, `driver-icarus.c`, 
 
 ### Adding or modifying a driver
 
-Wiring a driver touches three places:
+Wiring a driver touches four places:
 
 1. `driver-<name>.c` (+ header) implementing `device_drv`.
-2. `configure.ac` — add an `--enable-<name>` option and AM_CONDITIONAL.
-3. `Makefile.am` — add the sources under the matching `if HAS_<NAME>` block.
+2. `miner.h` — add a `DRIVER_ADD_COMMAND(name)` entry to the `FPGA_PARSE_COMMANDS` or `ASIC_PARSE_COMMANDS` X-macro list (~line 240); these expand to generate the `drv_driver` enum and the extern `*_drv` declarations.
+3. `configure.ac` — add an `--enable-<name>` option and AM_CONDITIONAL.
+4. `Makefile.am` — add the sources under the matching `if HAS_<NAME>` block.
 
 USB devices additionally need an entry in the device table in `usbutils.c`.
+
+Driver code is guarded by `#ifdef USE_<NAME>` (defined by configure). Consequence: when editing shared code (`cgminer.c`, `miner.h`, `api.c`, `usbutils.c`), most driver-specific blocks are not compiled in your configuration — enable the relevant drivers when compile-testing changes that touch them.
+
+### Threading and locking
+
+cgminer is heavily multi-threaded: one or more mining threads per device, per-pool stratum receive/send threads, plus API, watchdog, and curses input/log threads. Shared state is protected by the wrappers in `miner.h` — `mutex_lock`/`mutex_unlock`, `cg_rlock`/`cg_wlock`/`cg_ilock` (a custom `cglock_t` read/intermediate/write lock) — which record file/function/line for lock debugging. Use these wrappers, never raw pthread calls.
 
 ## Documentation conventions
 
